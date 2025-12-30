@@ -1,21 +1,17 @@
 "use client";
 
-import { use } from "react";
 import { useQuery } from "@tanstack/react-query";
-
 import type { NoteTag } from "@/types/note";
 import { fetchNotes } from "@/lib/api";
 import NoteList from "@/components/NoteList/NoteList";
 
 type Props = {
-  params: Promise<{ tag?: string[] }> | { tag?: string[] };
+  params: { slug?: string[] };
 };
 
 export default function Page({ params }: Props) {
-  const resolvedParams = params instanceof Promise ? use(params) : params;
-
-  const rawTag = resolvedParams.tag?.[0]; // "all" | "Work" | ...
-  const tag = rawTag && rawTag !== "all" ? (rawTag as NoteTag) : undefined;
+  const raw = params.slug?.[0];
+  const tag = raw && raw !== "all" ? (raw as NoteTag) : undefined;
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["notes", { tag }],
