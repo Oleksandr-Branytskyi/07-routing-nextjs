@@ -26,6 +26,7 @@ export interface FetchNotesParams {
   page: number;
   perPage: number;
   search?: string;
+  tag?: NoteTag;
 }
 
 export interface FetchNotesResponse {
@@ -51,6 +52,7 @@ export async function fetchNotes(
       page: params.page,
       perPage: params.perPage,
       search: params.search?.trim() || undefined,
+      tag: params.tag,
     },
     headers: {
       "Cache-Control": "no-cache",
@@ -84,6 +86,12 @@ export async function createNote(payload: CreateNotePayload): Promise<Note> {
 export async function deleteNote(id: string): Promise<Note> {
   const api = getApi();
 
-  const response: AxiosResponse<Note> = await api.delete(`notes/${id}`);
+  const response: AxiosResponse<Note> = await api.delete(`notes/${id}`, {
+    headers: {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+    },
+  });
+
   return response.data;
 }
