@@ -16,6 +16,7 @@ export default function NotePreviewClient({ id }: Props) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["note", id],
     queryFn: () => fetchNoteById(id),
+    refetchOnMount: false,
   });
 
   return (
@@ -28,6 +29,7 @@ export default function NotePreviewClient({ id }: Props) {
           <h2>{data.title}</h2>
           <p>{data.content}</p>
           <span>{data.tag}</span>
+          <p>{new Date(data.createdAt).toLocaleString()}</p>
         </>
       )}
     </Modal>

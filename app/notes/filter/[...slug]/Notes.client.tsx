@@ -1,25 +1,95 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+
 import type { NoteTag } from "@/types/note";
 import { fetchNotes } from "@/lib/api";
+
 import NoteList from "@/components/NoteList/NoteList";
+import SearchBox from "@/components/SearchBox/SearchBox";
+import Pagination from "@/components/Pagination/Pagination";
+import Modal from "@/components/Modal/Modal";
+import NoteForm from "@/components/NoteForm/NoteForm";
 
 type Props = {
   slug?: string[];
 };
 
+function useDebouncedValue<T>(value: T, delay = 400) {
+  const [debounced, setDebounced] = useState(value);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setDebounced(value), delay);
+    return () => window.clearTimeout(id);
+  }, [value, delay]);
+
+  return debounced;
+}
+
 export default function NotesClient({ slug }: Props) {
-  const raw = slug?.[0]; // "all" | "Work" | ...
-  const tag = raw && raw !== "all" ? (raw as NoteTag) : undefined;
+  const rawTag = slug?.[0] ?? "all";
+  const tag: NoteTag | undefined =
+    rawTag !== "all" ? (rawTag as NoteTag) : undefined;
+
+  // page per tag (ключ: rawTag)
+  const [pageByTag, setPageByTag] = useState<Record<string, number>>({});
+  const page = pageByTag[rawTag] ?? 1;
+
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 400);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const queryKey = useMemo(
+    () => ["notes", { tag, page, search: debouncedSearch }],
+    [tag, page, debouncedSearch]
+  );
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["notes", { tag }],
-    queryFn: () => fetchNotes({ page: 1, perPage: 20, tag }),
+    queryKey,
+    queryFn: () =>
+      fetchNotes({
+        page,
+        perPage: 20,
+        search: debouncedSearch,
+        tag,
+      }),
   });
 
-  if (isLoading) return <p>Loading...</p>;
-  if (isError) return <p>Error</p>;
+  const notes = data?.notes ?? [];
+  const totalPages = data?.totalPages ?? 1;
 
-  return <NoteList notes={data?.notes ?? []} />;
+  const handlePageChange = (nextPage: number) => {
+    setPageByTag((prev) => ({ ...prev, [rawTag]: nextPage }));
+  };
+
+  return (
+    <>
+      <SearchBox value={search} onChange={setSearch} />
+
+      <button type="button" onClick={() => setIsModalOpen(true)}>
+        Create note
+      </button>
+
+      {isLoading && <p>Loading...</p>}
+      {isError && <p>Error</p>}
+
+      {!isLoading && !isError && notes.length === 0 && <p>No notes found</p>}
+
+      {notes.length > 0 && <NoteList notes={notes} />}
+
+      {totalPages > 1 && (
+        <Pagination
+          page={page}
+          pageCount={totalPages}
+          onPageChange={handlePageChange}
+        />
+      )}
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <NoteForm onCancel={() => setIsModalOpen(false)} />
+      </Modal>
+    </>
+  );
 }

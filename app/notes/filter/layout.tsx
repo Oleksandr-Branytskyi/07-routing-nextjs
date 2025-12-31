@@ -1,19 +1,16 @@
 import type { ReactNode } from "react";
-import LayoutNotes from "@/components/LayoutNotes/LayoutNotes";
 
-type Props = {
+export default function Layout({
+  children,
+  sidebar,
+}: {
   children: ReactNode;
-  sidebar?: ReactNode;
-  notes?: ReactNode;
-  modal?: ReactNode;
-};
-
-export default function Layout({ sidebar, notes, modal }: Props) {
+  sidebar: ReactNode;
+}) {
   return (
-    <LayoutNotes
-      sidebar={sidebar ?? null}
-      notes={notes ?? null}
-      modal={modal ?? null}
-    />
+    <div style={{ display: "flex", minHeight: "100%" }}>
+      <aside style={{ width: 280 }}>{sidebar}</aside>
+      <main style={{ flex: 1 }}>{children}</main>
+    </div>
   );
 }
