@@ -12,6 +12,8 @@ import Pagination from "@/components/Pagination/Pagination";
 import Modal from "@/components/Modal/Modal";
 import NoteForm from "@/components/NoteForm/NoteForm";
 
+import css from "@/styles/NotesPage.module.css";
+
 type Props = {
   slug?: string[];
 };
@@ -65,12 +67,18 @@ export default function NotesClient({ slug }: Props) {
   };
 
   return (
-    <>
-      <SearchBox value={search} onChange={setSearch} />
+    <div className={css.app}>
+      <div className={css.toolbar}>
+        <SearchBox value={search} onChange={setSearch} />
 
-      <button type="button" onClick={() => setIsModalOpen(true)}>
-        Create note
-      </button>
+        <button
+          type="button"
+          className={css.button}
+          onClick={() => setIsModalOpen(true)}
+        >
+          Create note
+        </button>
+      </div>
 
       {isLoading && <p>Loading...</p>}
       {isError && <p>Error</p>}
@@ -90,6 +98,6 @@ export default function NotesClient({ slug }: Props) {
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <NoteForm onCancel={() => setIsModalOpen(false)} />
       </Modal>
-    </>
+    </div>
   );
 }
